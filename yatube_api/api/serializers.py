@@ -1,12 +1,11 @@
 from rest_framework import serializers
-from rest_framework.relations import SlugRelatedField
-from django.core.exceptions import ValidationError
-
 from posts.models import Comment, Post, Group, Follow, User
 
 
 class PostSerializer(serializers.ModelSerializer):
-    author = SlugRelatedField(slug_field='username', read_only=True)
+    author = serializers.SlugRelatedField(
+        slug_field='username', read_only=True
+    )
 
     class Meta:
         fields = '__all__'
@@ -39,14 +38,3 @@ class FollowSerializer(serializers.ModelSerializer):
     class Meta:
         fields = ('user', 'following')
         model = Follow
-
-    def validate_following(self, value):
-        user = self.context['request'].user
-
-        if user == value:
-            raise ValidationError("Вы не можете подписаться на сами себя.")
-
-        if Follow.objects.filter(user=user, following=value).exists():
-            raise ValidationError("Вы уже подписаны на этого пользователя.")
-
-        return value
